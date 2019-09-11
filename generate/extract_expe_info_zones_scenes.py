@@ -12,45 +12,15 @@ import scipy.stats as stats
 sys.path.insert(0, '') # trick to enable import of main folder module
 
 import custom_config as cfg
+import utils as utils_functions
 
 # variables
 data_expe_folder          = cfg.data_expe_folder
 position_file_pattern     = cfg.position_file_pattern
 click_line_pattern        = cfg.click_line_pattern
 
-# utils variables
-zone_width, zone_height   = cfg.image_zone_size
-scene_width, scene_height = cfg.image_scene_size
-nb_x_parts                = math.floor(scene_width / zone_width)
-
-min_x = 100
-min_y = 100
-
-def get_zone_index(p_x, p_y):
-
-    zone_index = math.floor(p_x / zone_width) + math.floor(p_y / zone_height) * nb_x_parts
-
-    return zone_index
-
-
-def check_coordinates(p_x, p_y):
-
-    if p_x < min_x or p_y < min_y:
-        return False
-        
-    if p_x >= min_x + scene_width or p_y >= min_y + scene_height:
-        return False
-    
-    return True
-
-
-def extract_click_coordinate(line):
-
-    data = line.split(' : ')[1].split(',')
-
-    p_x, p_y = (int(data[0]), int(data[1]))
-
-    return (p_x, p_y)
+min_x                     = cfg.min_x_coordinate
+min_y                     = cfg.min_y_coordinate
 
 
 def main():
@@ -58,10 +28,12 @@ def main():
     parser = argparse.ArgumentParser(description="Compute expe data into output file")
 
     parser.add_argument('--output', type=str, help="output folder expected", required=True)
+    parser.add_argument('--n', type=int, help="number of first clicks per zone wished per user")
 
     args = parser.parse_args()
 
     p_output   = args.output
+    p_n        = args.n
 
     # list all folders
     subjects = os.listdir(data_expe_folder)
@@ -98,28 +70,38 @@ def main():
         path_scene          = ""
         new_scene           = True
         number_of_scenes    = 0
-        counter             = 0
         scene_name          = ""
 
         # open pos file and extract click information 
         with open(pos_filepath, 'r') as f:
 
+            # for each subject check `p_n` on each zone
+            zones_filled = {}
+
+            # first init
+            for zone_index in cfg.zones_indices:
+                zones_filled[zone_index] = 0
+
             for line in f.readlines():
                 
                 if click_line_pattern in line and scene_name in cfg.scenes_names:
                     
-                    x, y = extract_click_coordinate(line)
+                    x, y = utils_functions.extract_click_coordinate(line)
 
                     # only accept valid coordinates
-                    if check_coordinates(x, y):
+                    if utils_functions.check_coordinates(x, y):
                         
                         p_x = x - min_x
                         p_y = y - min_y
 
-                        zone_index = get_zone_index(p_x, p_y)
+                        zone_index = utils_functions.get_zone_index(p_x, p_y)
 
-                        scenes[scene_name][zone_index]['x'].append(p_x)
-                        scenes[scene_name][zone_index]['y'].append(p_y)
+                        # check number of points saved for this specific zone
+                        # add only if wished
+                        if zones_filled[zone_index] < p_n:
+                            scenes[scene_name][zone_index]['x'].append(p_x)
+                            scenes[scene_name][zone_index]['y'].append(p_y)
+                            zones_filled[zone_index] += 1
                 
                 elif click_line_pattern not in line:
                     path_scene = line
@@ -133,14 +115,22 @@ def main():
                     if scene_name in cfg.scenes_names:
                         number_of_scenes += 1
 
+                    # reinit for each scene
+                    for zone_index in cfg.zones_indices:
+                        zones_filled[zone_index] = 0
+
                 else:
                     new_scene = False
 
-                if new_scene:
-                    counter = 0
+    filepath = os.path.join(cfg.extracted_data_folder, p_output)
 
-    with open(p_output, 'wb') as f:
+    if not os.path.exists(cfg.extracted_data_folder):
+        os.makedirs(cfg.extracted_data_folder)
+
+    with open(filepath, 'wb') as f:
         pickle.dump(scenes, f)
+
+    print('Data object are saved into', filepath)
 
 if __name__== "__main__":
     main()
