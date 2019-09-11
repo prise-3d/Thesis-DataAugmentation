@@ -2,6 +2,7 @@
 import sys, os, argparse
 import math
 import numpy as np
+import pickle
 
 # processing imports
 import matplotlib.pyplot as plt
@@ -11,45 +12,15 @@ import scipy.stats as stats
 sys.path.insert(0, '') # trick to enable import of main folder module
 
 import custom_config as cfg
+import utils as utils_functions
 
 # variables
 data_expe_folder          = cfg.data_expe_folder
 position_file_pattern     = cfg.position_file_pattern
 click_line_pattern        = cfg.click_line_pattern
 
-# utils variables
-zone_width, zone_height   = cfg.image_zone_size
-scene_width, scene_height = cfg.image_scene_size
-nb_x_parts                = math.floor(scene_width / zone_width)
-
-min_x = 100
-min_y = 100
-
-def get_zone_index(p_x, p_y):
-
-    zone_index = math.floor(p_x / zone_width) + math.floor(p_y / zone_height) * nb_x_parts
-
-    return zone_index
-
-
-def check_coordinates(p_x, p_y):
-
-    if p_x < min_x or p_y < min_y:
-        return False
-        
-    if p_x > min_x + scene_width or p_y > min_y + scene_height:
-        return False
-    
-    return True
-
-
-def extract_click_coordinate(line):
-
-    data = line.split(' : ')[1].split(',')
-
-    p_x, p_y = (int(data[0]), int(data[1]))
-
-    return (p_x, p_y)
+min_x                     = cfg.min_x_coordinate
+min_y                     = cfg.min_y_coordinate
 
 
 def main():
@@ -105,13 +76,10 @@ def main():
                 
                 if click_line_pattern in line and scene_name in cfg.scenes_names:
                     
-                    x, y = extract_click_coordinate(line)
-
-                    points_x.append(x)
-                    points_y.append(y)
+                    x, y = utils_functions.extract_click_coordinate(line)
 
                     # only accept valid coordinates
-                    if check_coordinates(x, y):
+                    if utils_functions.check_coordinates(x, y):
                         
                         if counter < p_n:
                             scenes[scene_name]['x'].append(x - min_x)
@@ -136,33 +104,22 @@ def main():
                     if scene_name in cfg.scenes_names:
                         number_of_scenes += 1
 
-                    points_x = []
-                    points_y = []
-
                 else:
                     new_scene = False
 
                 if new_scene:
                     counter = 0
+    
+    filepath = os.path.join(cfg.extracted_data_folder, p_output)
 
+    if not os.path.exists(cfg.extracted_data_folder):
+        os.makedirs(cfg.extracted_data_folder)
 
-        #print('clicks for', subject, ':', zones_clicks)
+    # save information about scenes
+    with open(filepath, 'wb') as f:
+        pickle.dump(scenes, f)
 
-    print(scenes)
-
-    for k, v in scenes.items():
-
-        print(len(v['x']))
-        #plt.title(k)
-        #plt.scatter(v['x'], v['y'])
-        #plt.show()
-
-    '''points_x.sort()
-    hmean = np.mean(points_x)
-    hstd = np.std(points_x)
-    pdf = stats.norm.pdf(points_x, hmean, hstd)
-    plt.plot(points_x, pdf) 
-    plt.show()'''
+    print('Data object are saved into', filepath)
 
 if __name__== "__main__":
     main()
