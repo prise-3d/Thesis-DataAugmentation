@@ -78,12 +78,15 @@ def main():
                     
                     x, y = utils_functions.extract_click_coordinate(line)
 
+                    p_x = x - min_x
+                    p_y = y - min_y
+                    
                     # only accept valid coordinates
-                    if utils_functions.check_coordinates(x, y):
+                    if utils_functions.check_coordinates(p_x, p_y):
                         
                         if counter < p_n:
-                            scenes[scene_name]['x'].append(x - min_x)
-                            scenes[scene_name]['y'].append(y - min_y)
+                            scenes[scene_name]['x'].append(p_x)
+                            scenes[scene_name]['y'].append(p_y)
                             counter += 1
                 
                 elif click_line_pattern not in line:

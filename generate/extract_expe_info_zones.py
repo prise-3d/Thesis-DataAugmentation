@@ -3,6 +3,7 @@ import sys, os, argparse
 import math
 import numpy as np
 import pickle
+import time
 
 # processing imports
 import matplotlib.pyplot as plt
@@ -87,14 +88,20 @@ def main():
                 if click_line_pattern in line and scene_name in cfg.scenes_names:
                     
                     x, y = utils_functions.extract_click_coordinate(line)
+         
+                    p_x = x - min_x
+                    p_y = y - min_y
 
                     # only accept valid coordinates
-                    if utils_functions.check_coordinates(x, y):
-                        
-                        p_x = x - min_x
-                        p_y = y - min_y
+                    if utils_functions.check_coordinates(p_x, p_y):
 
+                        # TODO : need to reverse `y` axis for correct zone index (zone 0 on from top left)
                         zone_index = utils_functions.get_zone_index(p_x, p_y)
+
+                        plt.scatter([p_x], [p_y])
+                        plt.show()
+
+                        time.sleep(2)
 
                         # check number of points saved for this specific zone
                         # add only if wished

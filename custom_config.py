@@ -8,6 +8,8 @@ data_expe_folder                = 'data_expe'
 data_augmented_filename         = 'augmented_dataset.csv'
 
 extracted_data_folder           = 'extracted_data'
+all_subjects_data_folder        = 'all_subjects'
+media_data_folder               = 'images'
 
 # variables
 image_scene_size                = (800, 800)

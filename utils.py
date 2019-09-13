@@ -1,5 +1,9 @@
 # main imports
-import sys, math
+import sys, math, os
+
+# processing imports
+import matplotlib.pyplot as plt
+from PIL import Image
 
 # modules imports
 sys.path.insert(0, '') # trick to enable import of main folder module
@@ -23,10 +27,10 @@ def get_zone_index(p_x, p_y):
 
 def check_coordinates(p_x, p_y):
 
-    if p_x < min_x or p_y < min_y:
+    if p_x < 0 or p_y < 0:
         return False
         
-    if p_x >= min_x + scene_width or p_y >= min_y + scene_height:
+    if p_x >= scene_width or p_y >= scene_height:
         return False
     
     return True
@@ -39,3 +43,30 @@ def extract_click_coordinate(line):
     p_x, p_y = (int(data[0]), int(data[1]))
 
     return (p_x, p_y)
+
+
+def save_img_plot(scene_name, x_points, y_points, title, img_path):
+
+    folder_scene = os.path.join(cfg.dataset_path, scene_name)
+
+    images = [img for img in os.listdir(folder_scene) if '.png' in img]
+    images = sorted(images)
+
+    first_image_path = os.path.join(folder_scene, images[0])
+    img = Image.open(first_image_path)
+
+    plt.rcParams["figure.figsize"] = (20, 20)
+
+    # Save here data information about subject
+    plt.title(title, fontsize=30)
+    plt.imshow(img)
+    plt.scatter(x_points, y_points, color='red')
+
+    for x_i, x in enumerate(cfg.zone_coodinates):
+        plt.plot([x_i * 200, x_i * 200], [0, 800], color='blue')
+
+    for y_i, y in enumerate(cfg.zone_coodinates):
+        plt.plot([0, 800], [y_i * 200, y_i * 200], color='blue')
+
+    plt.axis('off')
+    plt.savefig(img_path, dpi=100)
