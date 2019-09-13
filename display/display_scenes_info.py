@@ -35,11 +35,11 @@ def main():
 
     data = scenes_data[p_scene]
     
+    # set title and zone axis
     plt.title(p_scene, 'with data :', p_data)
 
     for x_i, x in enumerate(cfg.zone_coodinates):
         plt.plot([x_i * 200, x_i * 200], [0, 800], color='red')
-
     
     for y_i, y in enumerate(cfg.zone_coodinates):
         plt.plot([0, 800], [y_i * 200, y_i * 200], color='red')

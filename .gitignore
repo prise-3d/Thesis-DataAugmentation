@@ -108,4 +108,5 @@ venv.bak/
 expe_data
 dataset
 extracted_data
+images
 .vscode
