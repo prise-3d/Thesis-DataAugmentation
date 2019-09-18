@@ -147,6 +147,8 @@ def main():
 
                 if new_scene:
                     counter = 0
+                    x_points = []
+                    y_points = []
 
     all_path_folder = os.path.join(output_folder_path, cfg.all_subjects_data_folder)
 
