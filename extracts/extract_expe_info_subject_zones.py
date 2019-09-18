@@ -3,6 +3,7 @@ import sys, os, argparse
 import math
 import numpy as np
 import pickle
+import time
 
 # processing imports
 from PIL import Image
@@ -151,9 +152,13 @@ def main():
 
                             title = subject + ' - ' + scene_name + ' (' + str(p_n) + ' clicks)'
 
-                            # save image plot
-                            x_points = zones_clicks_of_subject[zone_index]['x']
-                            y_points = zones_clicks_of_subject[zone_index]['y']
+                            x_points = []
+                            y_points = []
+
+                            for zone_index in cfg.zones_indices:
+                                # save image plot
+                                x_points = x_points + zones_clicks_of_subject[zone_index]['x']
+                                y_points = y_points + zones_clicks_of_subject[zone_index]['y']
 
                             utils_functions.save_img_plot(scene_name, x_points, y_points, title, img_path)
 
